@@ -3,11 +3,15 @@
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\BlockedDeviceController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\OfficeLocationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Employee Management
+    Route::resource('employees', EmployeeController::class)->except(['show']);
 
     // Attendance Management
     Route::get('/attendances', [AttendanceController::class, 'index'])->name('attendances.index');

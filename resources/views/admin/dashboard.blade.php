@@ -14,6 +14,10 @@
                             <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900">Attendances</h5>
                             <p class="font-normal text-gray-700">Monitor employee attendance records.</p>
                         </a>
+                        <a href="{{ route('admin.employees.index') }}" class="block p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100">
+                            <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900">Employees</h5>
+                            <p class="font-normal text-gray-700">Manage employee accounts.</p>
+                        </a>
                         <a href="{{ route('admin.office-locations.index') }}" class="block p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100">
                             <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900">Office Locations</h5>
                             <p class="font-normal text-gray-700">Manage geofencing locations.</p>
