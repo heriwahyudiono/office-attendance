@@ -14,6 +14,18 @@ use Illuminate\Support\Facades\Storage;
 
 class AttendanceController extends Controller
 {
+    public function index()
+    {
+        $user = auth()->user();
+        $today = now()->toDateString();
+
+        $todayAttendance = Attendance::where('user_id', $user->id)
+         ->where('attendance_date', $today)
+         ->get()
+         ->keyBy('status'); // in out
+        
+         return view('employee.dashboard', compact('todayAttendance'));
+    }
     public function create()
     {
         $officeLocations = OfficeLocation::select('id', 'name', 'latitude', 'longitude', 'radius_meter')->get();
@@ -53,30 +65,44 @@ class AttendanceController extends Controller
         // 3. Geofencing Validation
         $officeLocations = OfficeLocation::all();
         $validLocation = null;
-        $minDistance = null;
+        $minDistance = 0;
+        $allowAnyLocation = config('app.allow_any_location');
 
-        foreach ($officeLocations as $location) {
+        // Safety: office harus ada
+        if ($officeLocations->isEmpty()) {
+            return back()->withErrors([
+                'location' => 'No office location configured in the system.'
+            ]);
+        }
+
+        if($allowAnyLocation){
+            // first office untuk default
+            $validLocation = $officeLocations->first();
+            $minDistance = null; 
+        }else{
+             foreach ($officeLocations as $location) {
             $distance = DistanceHelper::calculateDistance(
                 $request->latitude,
                 $request->longitude,
                 $location->latitude,
                 $location->longitude
             );
-
-            // Check distance or if ANY location is allowed (testing mode)
-            if ($distance <= $location->radius_meter || env('ALLOW_ANY_LOCATION') == true) {
-                // If multiple locations found, check if this one is closer
+            
+            if ($distance <= $location->radius_meter) {
                 if ($minDistance === null || $distance < $minDistance) {
                     $validLocation = $location;
                     $minDistance = $distance;
                 }
             }
         }
+    }
 
-        if (!$validLocation) {
-            return back()->withErrors(['location' => 'You are outside the office geofence radius.']);
-        }
-
+    // Final guard
+    if (!$validLocation) {
+        return back()->withErrors([
+            'location' => 'You are outside the office geofence radius.'
+        ]);
+    }
         // 4. Decode Photo & Prepare Path
         $photoData = $request->photo; // "data:image/png;base64,....."
         if (preg_match('/^data:image\/(\w+);base64,/', $photoData, $type)) {
@@ -111,7 +137,7 @@ class AttendanceController extends Controller
                     'attendance_time' => now()->format('H:i:s'),
                     'latitude' => $request->latitude,
                     'longitude' => $request->longitude,
-                    'distance_meter' => $minDistance,
+                    'distance_meter' => $minDistance ?? 0,
                     'status' => $request->status,
                     'device_info' => $request->device_info,
                 ]);

@@ -123,4 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'allow_any_location' => env('ALLOW_ANY_LOCATION', false),
+
+
 ];
